@@ -5,7 +5,6 @@ Game g;
 long CALLBACK WndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam) {
 	D3DLOCKED_RECT rect;
 	DWORD* pData;
-	POINT pS, pE;
 	switch (uMessage) {
 	case WM_CREATE:
 	{
@@ -24,14 +23,10 @@ long CALLBACK WndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam) {
 		return 0;
 	}
 	case WM_LBUTTONDOWN:
-		GetCursorPos(&pS);
-		g.d.setPStart(pS);
 		return 0;
 	case WM_MOUSEMOVE:
 		if (wParam == MK_LBUTTON) {
 			// holding down the left button
-			GetCursorPos(&pE);
-			g.d.setPEnd(pE);
 		}
 		return 0;
 	case WM_DESTROY:

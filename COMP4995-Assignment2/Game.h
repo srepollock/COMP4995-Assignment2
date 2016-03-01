@@ -24,7 +24,6 @@ public:
 	int Render();
 	HRESULT ValidateDevice();
 	HRESULT RestoreGraphics();
-	Draw d;
 };
 
 #endif

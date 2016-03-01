@@ -1,12 +1,12 @@
 #include "Includes.h"
 
 Game::Game() {
-	d = Draw();
+	
 }
 
 Game::Game(HWND hWnd) {
 	this->hWndMain = hWnd;
-	d = Draw();
+	
 }
 
 Game::~Game() {
@@ -186,7 +186,6 @@ int Game::Render() {
 	this->pBackSurface->UnlockRect();
 
 	this->pBackSurface->LockRect(&Locked, 0, 0);
-	d.draw(Locked.Pitch, (DWORD*)Locked.pBits);
 	this->pBackSurface->UnlockRect();
 
 	//Start to render in 3D

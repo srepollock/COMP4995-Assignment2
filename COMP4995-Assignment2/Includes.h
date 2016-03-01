@@ -13,6 +13,6 @@
 
 #include "basics.h"
 #include "Frame.h"
-#include "Draw.h"
+//#include "Draw.h"
 #include "Game.h"
 #endif
