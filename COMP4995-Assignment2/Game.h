@@ -1,6 +1,12 @@
 #pragma once
 #ifndef __GAME
 #define __GAME
+#define DRVERTEX_FLAGS (D3DFVF_XYZ|D3DFVF_NORMAL|D3DFVF_TEX1)
+struct DRIVERTEX {
+	float x, y, z;
+	float nx, ny, nz;
+};
+
 class Game {
 private:
 	HWND hWndMain;
@@ -12,6 +18,11 @@ private:
 	D3DPRESENT_PARAMETERS SavedPresParams;
 	LPDIRECT3DVERTEXBUFFER9 pVB = 0;
 	int DeviceHeight, DeviceWidth;
+	LPD3DXMESH pMesh = NULL;
+	DWORD dwNumMaterials = 0L;
+	D3DMATERIAL9* pMeshMaterials = NULL;
+	LPDIRECT3DTEXTURE9* pMeshTextures = NULL;
+
 public:
 	Game();
 	Game(HWND);
@@ -22,6 +33,7 @@ public:
 	int LoadBitmapToSurface(TCHAR*, LPDIRECT3DSURFACE9*, LPDIRECT3DDEVICE9);
 	int InitDirect3DDevice(HWND, int, int, BOOL, D3DFORMAT, LPDIRECT3D9, LPDIRECT3DDEVICE9*);
 	int Render();
+	void SetupMatrices();
 	HRESULT ValidateDevice();
 	HRESULT RestoreGraphics();
 };

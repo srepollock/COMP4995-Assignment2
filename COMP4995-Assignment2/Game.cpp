@@ -17,6 +17,7 @@ int Game::GameInit() {
 	HRESULT r = 0;//return values
 	D3DSURFACE_DESC desc;
 	LPDIRECT3DSURFACE9 pSurface = 0;
+	LPD3DXBUFFER pD3DXMtrlBuffer;
 
 	this->pD3D = Direct3DCreate9(D3D_SDK_VERSION);//COM object
 	if (this->pD3D == NULL) {
@@ -24,7 +25,7 @@ int Game::GameInit() {
 		return E_FAIL;
 	}
 												  // FALSE = full screen TRUE = windowed
-	r = InitDirect3DDevice(this->hWndMain, 640, 480, FALSE, D3DFMT_X8R8G8B8, this->pD3D, &this->pDevice);
+	r = InitDirect3DDevice(this->hWndMain, 640, 480, TRUE, D3DFMT_X8R8G8B8, this->pD3D, &this->pDevice);
 	if (FAILED(r)) {//FAILED is a macro that returns false if return value is a failure - safer than using value itself
 		SetError(_T("Initialization of the device failed"));
 		return E_FAIL;
@@ -51,6 +52,66 @@ int Game::GameInit() {
 
 	frameController.LoadAlphabet(_T("Alphabet vSmall.bmp"), 8, 16);
 	frameController.InitTiming();
+
+	// Load in the objects
+	if (FAILED(D3DXLoadMeshFromX(_T("tiger.x"), D3DXMESH_SYSTEMMEM,
+		pDevice, NULL,
+		&pD3DXMtrlBuffer, NULL, 
+		&dwNumMaterials,
+		&pMesh)))
+	{
+		// If model is not in current folder, try parent folder
+		if (FAILED(D3DXLoadMeshFromX(_T("..\\tiger.x"), D3DXMESH_SYSTEMMEM,
+			pDevice, NULL,
+			&pD3DXMtrlBuffer, NULL, &dwNumMaterials,
+			&pMesh)))
+		{
+			MessageBox(NULL, _T("Could not find tiger.x"), _T("Meshes.exe"), MB_OK);
+			return E_FAIL;
+		}
+	}
+
+	D3DXMATERIAL* d3dxMaterials = (D3DXMATERIAL*)pD3DXMtrlBuffer->GetBufferPointer();
+	pMeshMaterials = new D3DMATERIAL9[dwNumMaterials];
+	pMeshTextures = new LPDIRECT3DTEXTURE9[dwNumMaterials];
+
+	for (DWORD i = 0; i<dwNumMaterials; i++)
+	{
+		// Copy the material
+		pMeshMaterials[i] = d3dxMaterials[i].MatD3D;
+
+		// Set the ambient color for the material (D3DX does not do this)
+		pMeshMaterials[i].Ambient = pMeshMaterials[i].Diffuse;
+
+		pMeshTextures[i] = NULL;
+		if (d3dxMaterials[i].pTextureFilename != NULL &&
+			lstrlen(d3dxMaterials[i].pTextureFilename) > 0)
+		{
+			// Create the texture
+			if (FAILED(D3DXCreateTextureFromFile(pDevice,
+				d3dxMaterials[i].pTextureFilename,
+				&pMeshTextures[i])))
+			{
+				// If texture is not in current folder, try parent folder
+				const TCHAR* strPrefix = TEXT("..\\");
+				const int lenPrefix = lstrlen(strPrefix);
+				TCHAR strTexture[MAX_PATH];
+				lstrcpyn(strTexture, strPrefix, MAX_PATH);
+				lstrcpyn(strTexture + lenPrefix, d3dxMaterials[i].pTextureFilename, MAX_PATH - lenPrefix);
+				// If texture is not in current folder, try parent folder
+				if (FAILED(D3DXCreateTextureFromFile(pDevice,
+					strTexture,
+					&pMeshTextures[i])))
+				{
+					MessageBox(NULL, _T("Could not find texture map"), _T("Meshes.exe"), MB_OK);
+				}
+			}
+		}
+	}
+
+	// Done with the material buffer
+	pD3DXMtrlBuffer->Release();
+	pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
 
 	return S_OK;
 }
@@ -185,11 +246,26 @@ int Game::Render() {
 	frameController.PrintFrameRate(40, 50, TRUE, D3DCOLOR_ARGB(255, 255, 0, 255), (DWORD*)Locked.pBits, Locked.Pitch);	
 	this->pBackSurface->UnlockRect();
 
-	this->pBackSurface->LockRect(&Locked, 0, 0);
-	this->pBackSurface->UnlockRect();
+	pDevice->SetFVF(DRVERTEX_FLAGS);
 
 	//Start to render in 3D
 	this->pDevice->BeginScene();
+
+	// for loop to load in the objects
+	SetupMatrices();
+
+	// Meshes are divided into subsets, one for each material. Render them in
+	// a loop
+	for (DWORD i = 0; i<dwNumMaterials; i++)
+	{
+		// Set the material and texture for this subset
+		pDevice->SetMaterial(&pMeshMaterials[i]);
+		pDevice->SetTexture(0, pMeshTextures[i]);
+
+		// Draw the mesh subset
+		pMesh->DrawSubset(i);
+	}
+
 	//finish rendering
 	this->pDevice->EndScene();
 
@@ -234,4 +310,35 @@ HRESULT Game::ValidateDevice() {
 
 HRESULT Game::RestoreGraphics() {
 	return S_OK;
+}
+
+void Game::SetupMatrices()
+{
+	// For our world matrix, we will just leave it as the identity
+	D3DXMATRIXA16 matWorld;
+	D3DXMatrixRotationY(&matWorld, 50.0f);
+	pDevice->SetTransform(D3DTS_WORLD, &matWorld); // Takes whatever is in the matrix, and sets it to the world
+			// ** This is how we will move objects and rotate later **
+
+	// Set up our view matrix. A view matrix can be defined given an eye point,
+	// a point to lookat, and a direction for which way is up. Here, we set the
+	// eye five units back along the z-axis and up three units, look at the 
+	// origin, and define "up" to be in the y-direction.
+	D3DXVECTOR3 vEyePt(0.0f, 3.0f, -10.0f);
+	D3DXVECTOR3 vLookatPt(0.0f, 0.0f, 0.0f);
+	D3DXVECTOR3 vUpVec(0.0f, 1.0f, 0.0f);
+	D3DXMATRIXA16 matView;
+	D3DXMatrixLookAtLH(&matView, &vEyePt, &vLookatPt, &vUpVec);
+	pDevice->SetTransform(D3DTS_VIEW, &matView);
+
+	// For the projection matrix, we set up a perspective transform (which
+	// transforms geometry from 3D view space to 2D viewport space, with
+	// a perspective divide making objects smaller in the distance). To build
+	// a perpsective transform, we need the field of view (1/4 pi is common),
+	// the aspect ratio, and the near and far clipping planes (which define at
+	// what distances geometry should be no longer be rendered).
+	D3DXMATRIXA16 matProj;
+	float screenaspect = (float)DeviceWidth / (float)DeviceHeight;
+	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, screenaspect, 1.0f, 100.0f);
+	pDevice->SetTransform(D3DTS_PROJECTION, &matProj);
 }
