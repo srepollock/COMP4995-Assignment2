@@ -29,6 +29,8 @@ private:
 	D3DXMATRIX matView;
 	D3DXMATRIX matObj1;
 	D3DXMATRIX matObj2;
+	D3DMATERIAL9 material;
+	D3DLIGHT9 light;
 	bool CameraMove = true; // default move camera
 	bool Obj1Move = false;
 	bool Obj2Move = false;
@@ -56,6 +58,7 @@ public:
 	void setCameraMove(bool);
 	void setObj1Move(bool);
 	void setObj2Move(bool);
+	void SetLighting();
 };
 
 #endif

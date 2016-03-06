@@ -130,6 +130,12 @@ int Game::GameInit() {
 		}
 	}
 
+	// Create normals for the tiger
+	pMesh->CloneMeshFVF(D3DXMESH_MANAGED, D3DFVF_XYZ | D3DFVF_NORMAL | D3DFVF_TEX1, pDevice, &pMesh);
+	if (FAILED(D3DXComputeNormals(pMesh, NULL))) {
+		return E_FAIL;
+	}
+
 	for (DWORD i = 0; i<dwNumMaterials2; i++)
 	{
 		// Copy the material
@@ -164,6 +170,11 @@ int Game::GameInit() {
 		}
 	}
 
+	SetLighting();
+	pDevice->SetMaterial(&material);
+	pDevice->SetLight(0, &light);
+	pDevice->LightEnable(0, TRUE);
+
 	// for loop to load in the objects
 	SetupMatrices();
 	D3DXMatrixTranslation(&matObj1, 0, 0, 0);
@@ -171,7 +182,7 @@ int Game::GameInit() {
 
 	// Done with the material buffer
 	pD3DXMtrlBuffer->Release();
-	pDevice->SetRenderState(D3DRS_LIGHTING, FALSE);
+	pDevice->SetRenderState(D3DRS_LIGHTING, TRUE);
 
 	return S_OK;
 }
@@ -468,4 +479,24 @@ void Game::setObj2Move(bool b) {
 	Obj2Move = b;
 	CameraMove = false;
 	Obj1Move = false;
+}
+void Game::SetLighting() {
+	ZeroMemory(&material, sizeof(D3DMATERIAL9));
+	material.Diffuse.r = 1.0f;
+	material.Diffuse.g = 1.0f;
+	material.Diffuse.b = 1.0f;
+	material.Diffuse.a = 1.0f;
+	material.Diffuse.r = 1.0f;
+	material.Ambient.r = 1.0f;
+	material.Ambient.g = 1.0f;
+	material.Ambient.b = 1.0f;
+	material.Ambient.a = 1.0f;
+
+	ZeroMemory(&light, sizeof(D3DLIGHT9));
+	light.Type = D3DLIGHT_DIRECTIONAL;
+	light.Diffuse = D3DXCOLOR(1.0f, 1.0f, 1.0f, 1.0f);
+
+	D3DXVECTOR3 vecDir;
+	vecDir = D3DXVECTOR3(0.0f, 0.0f, 1.0f);
+	D3DXVec3Normalize((D3DXVECTOR3*)&light.Direction, &vecDir);
 }
