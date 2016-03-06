@@ -22,6 +22,123 @@ long CALLBACK WndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam) {
 		}
 		return 0;
 	}
+	case WM_KEYDOWN:
+		switch (wParam) {
+		case 0x30:
+			// 0
+			// move camera
+			// set move camera bool
+			g.setCameraMove(true);
+			break;
+		case 0x31:
+			// 1
+			//g.moveobj(1)
+			g.setObj1Move(true);
+			break;
+		case 0x32:
+			// 2
+			//g.moveobj(2)
+			g.setObj2Move(true);
+			break;
+	// moves current selection
+		case 0x57:
+			// w // move up
+			if (g.getCameraMove()) {
+				g.moveCamera(0.0f, 1.0f, 0.0f);
+			}
+			else if (g.getObj1Move()) {
+				g.moveObject(1, 0.0f, 1.0f, 0.0f);
+			}
+			else if (g.getObj2Move()) {
+				g.moveObject(2, 0.0f, 1.0f, 0.0f);
+			}
+			break;
+		case 0x41:
+			// a // move left
+			if (g.getCameraMove()) {
+				g.moveCamera(-1.0f, 0.0f, 0.0f);
+			}
+			else if (g.getObj1Move()) {
+				g.moveObject(1, -1.0f, 0.0f, 0.0f);
+			}
+			else if (g.getObj2Move()) {
+				g.moveObject(2, -1.0f, 0.0f, 0.0f);
+			}
+			break;
+		case 0x53:
+			// s // move down
+			if (g.getCameraMove()) {
+				g.moveCamera(0.0f, -1.0f, 0.0f);
+			}
+			else if (g.getObj1Move()) {
+				g.moveObject(1, 0.0f, -1.0f, 0.0f);
+			}
+			else if (g.getObj2Move()) {
+				g.moveObject(2, 0.0f, -1.0f, 0.0f);
+			}
+			break;
+		case 0x44:
+			// d // move right
+			if (g.getCameraMove()) {
+				g.moveCamera(1.0f, 0.0f, 0.0f);
+			}
+			else if (g.getObj1Move()) {
+				g.moveObject(1, 1.0f, 0.0f, 0.0f);
+			}
+			else if (g.getObj2Move()) {
+				g.moveObject(2, 1.0f, 0.0f, 0.0f);
+			}
+			break;
+		case 0x58:
+			// x // move farther
+			if (g.getCameraMove()) {
+				g.moveCamera(0.0f, 0.0f, 1.0f);
+			}
+			else if (g.getObj1Move()) {
+				g.moveObject(1, 0.0f, 0.0f, 1.0f);
+			}
+			else if (g.getObj2Move()) {
+				g.moveObject(2, 0.0f, 0.0f, 1.0f);
+			}
+			break;
+		case 0x5A:
+			// z // move closer
+			if (g.getCameraMove()) {
+				g.moveCamera(0.0f, 0.0f, -1.0f);
+			}
+			else if (g.getObj1Move()) {
+				g.moveObject(1, 0.0f, 0.0f, -1.0f);
+			}
+			else if (g.getObj2Move()) {
+				g.moveObject(2, 0.0f, 0.0f, -1.0f);
+			}
+			break;
+		case 0x51:
+			// q // rotate left
+			if (g.getCameraMove()) {
+				g.rotateCamera(-5.0f);
+			}
+			else if (g.getObj1Move()) {
+				g.rotateObject(1, -5.0f);
+			}
+			else if (g.getObj2Move()) {
+				g.rotateObject(2, -5.0f);
+			}
+			break;
+		case 0x45:
+			// e // rotate right
+			if (g.getCameraMove()) {
+				g.rotateCamera(5.0f);
+			}
+			else if (g.getObj1Move()) {
+				g.rotateObject(1, 5.0f);
+			}
+			else if (g.getObj2Move()) {
+				g.rotateObject(2, 5.0f);
+			}
+			break;
+		}
+		return 0;
 	case WM_LBUTTONDOWN:
 		return 0;
 	case WM_MOUSEMOVE:

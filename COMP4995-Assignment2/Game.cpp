@@ -17,7 +17,7 @@ int Game::GameInit() {
 	HRESULT r = 0;//return values
 	D3DSURFACE_DESC desc;
 	LPDIRECT3DSURFACE9 pSurface = 0;
-	LPD3DXBUFFER pD3DXMtrlBuffer;
+	LPD3DXBUFFER pD3DXMtrlBuffer, pD3DXMtrlBuffer2;
 
 	this->pD3D = Direct3DCreate9(D3D_SDK_VERSION);//COM object
 	if (this->pD3D == NULL) {
@@ -71,9 +71,30 @@ int Game::GameInit() {
 		}
 	}
 
+	// Load in the objects
+	if (FAILED(D3DXLoadMeshFromX(_T("Monkey.x"), D3DXMESH_SYSTEMMEM,
+		pDevice, NULL,
+		&pD3DXMtrlBuffer2, NULL,
+		&dwNumMaterials2,
+		&pMesh2)))
+	{
+		// If model is not in current folder, try parent folder
+		if (FAILED(D3DXLoadMeshFromX(_T("..\\Monkey.x"), D3DXMESH_SYSTEMMEM,
+			pDevice, NULL,
+			&pD3DXMtrlBuffer2, NULL, &dwNumMaterials2,
+			&pMesh2)))
+		{
+			MessageBox(NULL, _T("Could not find Monkey.x"), _T("Meshes.exe"), MB_OK);
+			return E_FAIL;
+		}
+	}
+
 	D3DXMATERIAL* d3dxMaterials = (D3DXMATERIAL*)pD3DXMtrlBuffer->GetBufferPointer();
 	pMeshMaterials = new D3DMATERIAL9[dwNumMaterials];
 	pMeshTextures = new LPDIRECT3DTEXTURE9[dwNumMaterials];
+	D3DXMATERIAL* d3dxMaterials2 = (D3DXMATERIAL*)pD3DXMtrlBuffer2->GetBufferPointer();
+	pMeshMaterials2 = new D3DMATERIAL9[dwNumMaterials2];
+	pMeshTextures2 = new LPDIRECT3DTEXTURE9[dwNumMaterials2];
 
 	for (DWORD i = 0; i<dwNumMaterials; i++)
 	{
@@ -108,6 +129,45 @@ int Game::GameInit() {
 			}
 		}
 	}
+
+	for (DWORD i = 0; i<dwNumMaterials2; i++)
+	{
+		// Copy the material
+		pMeshMaterials2[i] = d3dxMaterials2[i].MatD3D;
+
+		// Set the ambient color for the material (D3DX does not do this)
+		pMeshMaterials2[i].Ambient = pMeshMaterials2[i].Diffuse;
+
+		pMeshTextures2[i] = NULL;
+		if (d3dxMaterials2[i].pTextureFilename != NULL &&
+			lstrlen(d3dxMaterials2[i].pTextureFilename) > 0)
+		{
+			// Create the texture
+			if (FAILED(D3DXCreateTextureFromFile(pDevice,
+				d3dxMaterials2[i].pTextureFilename,
+				&pMeshTextures2[i])))
+			{
+				// If texture is not in current folder, try parent folder
+				const TCHAR* strPrefix = TEXT("..\\");
+				const int lenPrefix = lstrlen(strPrefix);
+				TCHAR strTexture[MAX_PATH];
+				lstrcpyn(strTexture, strPrefix, MAX_PATH);
+				lstrcpyn(strTexture + lenPrefix, d3dxMaterials2[i].pTextureFilename, MAX_PATH - lenPrefix);
+				// If texture is not in current folder, try parent folder
+				if (FAILED(D3DXCreateTextureFromFile(pDevice,
+					strTexture,
+					&pMeshTextures2[i])))
+				{
+					MessageBox(NULL, _T("Could not find texture map"), _T("Meshes.exe"), MB_OK);
+				}
+			}
+		}
+	}
+
+	// for loop to load in the objects
+	SetupMatrices();
+	D3DXMatrixTranslation(&matObj1, 0, 0, 0);
+	D3DXMatrixTranslation(&matObj2, 0, 0, 0);
 
 	// Done with the material buffer
 	pD3DXMtrlBuffer->Release();
@@ -251,9 +311,7 @@ int Game::Render() {
 	//Start to render in 3D
 	this->pDevice->BeginScene();
 
-	// for loop to load in the objects
-	SetupMatrices();
-
+	pDevice->SetTransform(D3DTS_WORLD, &matObj1);
 	// Meshes are divided into subsets, one for each material. Render them in
 	// a loop
 	for (DWORD i = 0; i<dwNumMaterials; i++)
@@ -265,9 +323,21 @@ int Game::Render() {
 		// Draw the mesh subset
 		pMesh->DrawSubset(i);
 	}
+	pDevice->SetTransform(D3DTS_WORLD, &matObj2);
+	for (DWORD i = 0; i<dwNumMaterials2; i++)
+	{
+		// Set the material and texture for this subset
+		pDevice->SetMaterial(&pMeshMaterials2[i]);
+		pDevice->SetTexture(0, pMeshTextures2[i]);
+
+		// Draw the mesh subset
+		pMesh2->DrawSubset(i);
+	}
 
 	//finish rendering
 	this->pDevice->EndScene();
+
+	pDevice->SetTransform(D3DTS_VIEW, &matView); // updates view
 
 	//console work
 	this->pDevice->Present(NULL, NULL, NULL, NULL);//swap over buffer to primary surface
@@ -327,7 +397,6 @@ void Game::SetupMatrices()
 	D3DXVECTOR3 vEyePt(0.0f, 3.0f, -10.0f);
 	D3DXVECTOR3 vLookatPt(0.0f, 0.0f, 0.0f);
 	D3DXVECTOR3 vUpVec(0.0f, 1.0f, 0.0f);
-	D3DXMATRIXA16 matView;
 	D3DXMatrixLookAtLH(&matView, &vEyePt, &vLookatPt, &vUpVec);
 	pDevice->SetTransform(D3DTS_VIEW, &matView);
 
@@ -341,4 +410,62 @@ void Game::SetupMatrices()
 	float screenaspect = (float)DeviceWidth / (float)DeviceHeight;
 	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, screenaspect, 1.0f, 100.0f);
 	pDevice->SetTransform(D3DTS_PROJECTION, &matProj);
+}
+void Game::moveCamera(float x, float y, float z) {
+	D3DXMATRIX newM;
+	D3DXMatrixTranslation(&newM, x, y, z);
+	D3DXMatrixMultiply(&matView, &matView, &newM);
+}
+void Game::rotateCamera(float r) {
+	// rotate around y
+	D3DXMATRIX newM;
+	D3DXMatrixRotationY(&newM, r);
+	D3DXMatrixMultiply(&matView, &matView, &newM);
+}
+void Game::moveObject(int objNum, float x, float y, float z) {
+	D3DXMATRIX newM;
+	if (objNum == 1) {
+		D3DXMatrixTranslation(&newM, x, y, z);
+		D3DXMatrixMultiply(&matObj1, &matObj1, &newM);
+	}
+	else {
+		D3DXMatrixTranslation(&newM, x, y, z);
+		D3DXMatrixMultiply(&matObj2, &matObj2, &newM);
+	}
+}
+void Game::rotateObject(int objNum, float r) {
+	// rotate around y
+	D3DXMATRIX newM;
+	if (objNum == 1) {
+		D3DXMatrixRotationY(&newM, r);
+		D3DXMatrixMultiply(&matObj1, &matObj1, &newM);
+	}
+	else {
+		D3DXMatrixRotationY(&newM, r);
+		D3DXMatrixMultiply(&matObj2, &matObj2, &newM);
+	}
+}
+bool Game::getCameraMove() {
+	return CameraMove;
+}
+bool Game::getObj1Move() {
+	return Obj1Move;
+}
+bool Game::getObj2Move() {
+	return Obj2Move;
+}
+void Game::setCameraMove(bool b) {
+	CameraMove = b;
+	Obj1Move = false;
+	Obj2Move = false;
+}
+void Game::setObj1Move(bool b) {
+	Obj1Move = b;
+	CameraMove = false;
+	Obj2Move = false;
+}
+void Game::setObj2Move(bool b) {
+	Obj2Move = b;
+	CameraMove = false;
+	Obj1Move = false;
 }

@@ -19,9 +19,19 @@ private:
 	LPDIRECT3DVERTEXBUFFER9 pVB = 0;
 	int DeviceHeight, DeviceWidth;
 	LPD3DXMESH pMesh = NULL;
+	LPD3DXMESH pMesh2 = NULL;
 	DWORD dwNumMaterials = 0L;
 	D3DMATERIAL9* pMeshMaterials = NULL;
 	LPDIRECT3DTEXTURE9* pMeshTextures = NULL;
+	DWORD dwNumMaterials2 = 0L;
+	D3DMATERIAL9* pMeshMaterials2 = NULL;
+	LPDIRECT3DTEXTURE9* pMeshTextures2 = NULL;
+	D3DXMATRIX matView;
+	D3DXMATRIX matObj1;
+	D3DXMATRIX matObj2;
+	bool CameraMove = true; // default move camera
+	bool Obj1Move = false;
+	bool Obj2Move = false;
 
 public:
 	Game();
@@ -36,6 +46,16 @@ public:
 	void SetupMatrices();
 	HRESULT ValidateDevice();
 	HRESULT RestoreGraphics();
+	void moveCamera(float, float, float);
+	void rotateCamera(float);
+	void moveObject(int, float, float, float);
+	void rotateObject(int, float);
+	bool getCameraMove();
+	bool getObj1Move();
+	bool getObj2Move();
+	void setCameraMove(bool);
+	void setObj1Move(bool);
+	void setObj2Move(bool);
 };
 
 #endif
