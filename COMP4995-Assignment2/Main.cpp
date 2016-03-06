@@ -116,26 +116,46 @@ long CALLBACK WndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam) {
 		case 0x51:
 			// q // rotate left
 			if (g.getCameraMove()) {
-				g.rotateCamera(-5.0f);
+				g.rotateCamera(-0.3f);
 			}
 			else if (g.getObj1Move()) {
-				g.rotateObject(1, -5.0f);
+				g.rotateObject(1, -0.3f);
 			}
 			else if (g.getObj2Move()) {
-				g.rotateObject(2, -5.0f);
+				g.rotateObject(2, -0.3f);
 			}
 			break;
 		case 0x45:
 			// e // rotate right
 			if (g.getCameraMove()) {
-				g.rotateCamera(5.0f);
+				g.rotateCamera(0.3f);
 			}
 			else if (g.getObj1Move()) {
-				g.rotateObject(1, 5.0f);
+				g.rotateObject(1, 0.3f);
 			}
 			else if (g.getObj2Move()) {
-				g.rotateObject(2, 5.0f);
+				g.rotateObject(2, 0.3f);
 			}
+			break;
+		case 0x50:
+			// point lighting enabled
+			// p
+			g.SetLightingPoint();
+			break;
+		case 0x4F:
+			// directional lighting enabled
+			// o
+			g.SetLightingDirectional();
+			break;
+		case 0x49:
+			// spot lighting enabled
+			// i
+			g.SetLightingSpot();
+			break;
+		case 0x55:
+			// ambient lighting enabled
+			// u
+			g.SetLightingAmbient();
 			break;
 		}
 		return 0;

@@ -58,7 +58,10 @@ public:
 	void setCameraMove(bool);
 	void setObj1Move(bool);
 	void setObj2Move(bool);
-	void SetLighting();
+	void SetLightingDirectional();
+	void SetLightingAmbient();
+	void SetLightingSpot();
+	void SetLightingPoint();
 };
 
 #endif
