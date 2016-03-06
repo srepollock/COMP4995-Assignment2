@@ -433,6 +433,8 @@ void Game::rotateCamera(float r) {
 	D3DXMatrixRotationY(&newM, r);
 	D3DXMatrixMultiply(&matView, &matView, &newM);
 }
+
+// This needs to be fixed. I am rotating about the y. I need to rotate around the y of my coords
 void Game::moveObject(int objNum, float x, float y, float z) {
 	D3DXMATRIX newM;
 	if (objNum == 1) {
@@ -446,13 +448,33 @@ void Game::moveObject(int objNum, float x, float y, float z) {
 }
 void Game::rotateObject(int objNum, float r) {
 	// rotate around y
-	D3DXMATRIX newM;
+	D3DXMATRIX newM, matRot, backM;
+	float x, y, z;
 	if (objNum == 1) {
-		D3DXMatrixRotationY(&newM, r);
+		D3DXMatrixRotationY(&matRot, r);
+		x = matObj1._41;
+		y = matObj1._42;
+		z = matObj1._43;
+		D3DXMatrixTranslation(&newM, -x, -y, -z);
+		D3DXMatrixMultiply(&newM, &newM, &matRot);
+		D3DXMatrixTranslation(&backM, x, y, z);
+		D3DXMatrixMultiply(&newM, &newM, &backM);
 		D3DXMatrixMultiply(&matObj1, &matObj1, &newM);
 	}
 	else {
-		D3DXMatrixRotationY(&newM, r);
+		x = matObj2._41;
+		y = matObj2._42;
+		z = matObj2._43;
+		D3DXMatrixTranslation(&newM, -x, -y, -z);
+
+		D3DXMatrixRotationY(&matRot, r);
+
+		D3DXMatrixMultiply(&newM, &newM, &matRot);
+
+		D3DXMatrixTranslation(&backM, x, y, z);
+
+		D3DXMatrixMultiply(&newM, &newM, &backM);
+
 		D3DXMatrixMultiply(&matObj2, &matObj2, &newM);
 	}
 }
