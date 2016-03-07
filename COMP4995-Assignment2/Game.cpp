@@ -25,7 +25,7 @@ int Game::GameInit() {
 		return E_FAIL;
 	}
 												  // FALSE = full screen TRUE = windowed
-	r = InitDirect3DDevice(this->hWndMain, 640, 480, TRUE, D3DFMT_X8R8G8B8, this->pD3D, &this->pDevice);
+	r = InitDirect3DDevice(this->hWndMain, 1920, 1080, TRUE, D3DFMT_X8R8G8B8, this->pD3D, &this->pDevice);
 	if (FAILED(r)) {//FAILED is a macro that returns false if return value is a failure - safer than using value itself
 		SetError(_T("Initialization of the device failed"));
 		return E_FAIL;
@@ -307,11 +307,6 @@ int Game::Render() {
 		SetError(_T("Error setting surface to back surface"));
 	}
 
-	D3DLOCKED_RECT Locked;
-	this->pBackSurface->LockRect(&Locked, 0, 0);
-	frameController.PrintFrameRate(40, 50, TRUE, D3DCOLOR_ARGB(255, 255, 0, 255), (DWORD*)Locked.pBits, Locked.Pitch);	
-	this->pBackSurface->UnlockRect();
-
 	pDevice->SetFVF(DRVERTEX_FLAGS);
 
 	//Start to render in 3D
@@ -342,6 +337,11 @@ int Game::Render() {
 
 	//finish rendering
 	this->pDevice->EndScene();
+
+	D3DLOCKED_RECT Locked;
+	this->pBackSurface->LockRect(&Locked, 0, 0);
+	frameController.PrintFrameRate(40, 50, TRUE, D3DCOLOR_ARGB(255, 255, 0, 255), (DWORD*)Locked.pBits, Locked.Pitch);
+	this->pBackSurface->UnlockRect();
 
 	pDevice->SetTransform(D3DTS_VIEW, &matView); // updates view
 
@@ -414,14 +414,16 @@ void Game::SetupMatrices()
 	// what distances geometry should be no longer be rendered).
 	D3DXMATRIXA16 matProj;
 	float screenaspect = (float)DeviceWidth / (float)DeviceHeight;
-	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, screenaspect, 1.0f, 100.0f);
+	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, screenaspect, 1.0f, 500.0f);
 	pDevice->SetTransform(D3DTS_PROJECTION, &matProj);
 }
+
 void Game::moveCamera(float x, float y, float z) {
 	D3DXMATRIX newM;
 	D3DXMatrixTranslation(&newM, x, y, z);
 	D3DXMatrixMultiply(&matView, &matView, &newM);
 }
+
 void Game::rotateCamera(float r) {
 	// rotate around y
 	D3DXMATRIX newM;
@@ -441,6 +443,7 @@ void Game::moveObject(int objNum, float x, float y, float z) {
 		D3DXMatrixMultiply(&matObj2, &matObj2, &newM);
 	}
 }
+
 void Game::rotateObject(int objNum, float r) {
 	// rotate around y
 	D3DXMATRIX newM, matRot, backM;
@@ -473,30 +476,37 @@ void Game::rotateObject(int objNum, float r) {
 		D3DXMatrixMultiply(&matObj2, &matObj2, &newM);
 	}
 }
+
 bool Game::getCameraMove() {
 	return CameraMove;
 }
+
 bool Game::getObj1Move() {
 	return Obj1Move;
 }
+
 bool Game::getObj2Move() {
 	return Obj2Move;
 }
+
 void Game::setCameraMove(bool b) {
 	CameraMove = b;
 	Obj1Move = false;
 	Obj2Move = false;
 }
+
 void Game::setObj1Move(bool b) {
 	Obj1Move = b;
 	CameraMove = false;
 	Obj2Move = false;
 }
+
 void Game::setObj2Move(bool b) {
 	Obj2Move = b;
 	CameraMove = false;
 	Obj1Move = false;
 }
+
 void Game::SetLightingDirectional() {
 	ZeroMemory(&material, sizeof(D3DMATERIAL9));
 	material.Diffuse.r = 1.0f;
@@ -521,9 +531,11 @@ void Game::SetLightingDirectional() {
 	pDevice->LightEnable(0, TRUE);
 	pDevice->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(10, 10, 10));
 }
+
 void Game::SetLightingAmbient() {
 	pDevice->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(255, 255, 255));
 }
+
 void Game::SetLightingSpot() {
 	ZeroMemory(&material, sizeof(D3DMATERIAL9));
 	material.Diffuse.r = 1.0f;
@@ -554,6 +566,7 @@ void Game::SetLightingSpot() {
 	pDevice->LightEnable(0, TRUE);
 	pDevice->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(10, 10, 10));
 }
+
 void Game::SetLightingPoint() {
 	ZeroMemory(&light, sizeof(light));
 	light.Type = D3DLIGHT_POINT;
