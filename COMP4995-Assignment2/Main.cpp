@@ -5,6 +5,7 @@ Game g;
 long CALLBACK WndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam) {
 	D3DLOCKED_RECT rect;
 	DWORD* pData;
+	short delta;
 	switch (uMessage) {
 	case WM_CREATE:
 	{
@@ -22,6 +23,31 @@ long CALLBACK WndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam) {
 		}
 		return 0;
 	}
+	case WM_MOUSEWHEEL:
+		delta = GET_WHEEL_DELTA_WPARAM(wParam);
+		if (delta > 0) {
+			if (g.getCameraMove()) {
+				g.rotateCameraX(-0.3f);
+			}
+			else if (g.getObj1Move()) {
+				g.rotateObjectX(1, -0.3f);
+			}
+			else if (g.getObj2Move()) {
+				g.rotateObjectX(2, -0.3f);
+			}
+		}
+		else {
+			if (g.getCameraMove()) {
+				g.rotateCameraX(0.3f);
+			}
+			else if (g.getObj1Move()) {
+				g.rotateObjectX(1, 0.3f);
+			}
+			else if (g.getObj2Move()) {
+				g.rotateObjectX(2, 0.3f);
+			}
+		}
+		break;
 	case WM_KEYDOWN:
 		switch (wParam) {
 		case 0x30:
@@ -116,25 +142,25 @@ long CALLBACK WndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam) {
 		case 0x51:
 			// q // rotate left
 			if (g.getCameraMove()) {
-				g.rotateCamera(-0.3f);
+				g.rotateCameraY(-0.3f);
 			}
 			else if (g.getObj1Move()) {
-				g.rotateObject(1, -0.3f);
+				g.rotateObjectY(1, -0.3f);
 			}
 			else if (g.getObj2Move()) {
-				g.rotateObject(2, -0.3f);
+				g.rotateObjectY(2, -0.3f);
 			}
 			break;
 		case 0x45:
 			// e // rotate right
 			if (g.getCameraMove()) {
-				g.rotateCamera(0.3f);
+				g.rotateCameraY(0.3f);
 			}
 			else if (g.getObj1Move()) {
-				g.rotateObject(1, 0.3f);
+				g.rotateObjectY(1, 0.3f);
 			}
 			else if (g.getObj2Move()) {
-				g.rotateObject(2, 0.3f);
+				g.rotateObjectY(2, 0.3f);
 			}
 			break;
 		case 0x50:
@@ -156,6 +182,30 @@ long CALLBACK WndProc(HWND hWnd, UINT uMessage, WPARAM wParam, LPARAM lParam) {
 			// ambient lighting enabled
 			// u
 			g.SetLightingAmbient();
+			break;
+		case 0x46:
+			// f // rotate about z axis ccw
+			if (g.getCameraMove()) {
+				g.rotateCameraZ(0.3f);
+			}
+			else if (g.getObj1Move()) {
+				g.rotateObjectZ(1, 0.3f);
+			}
+			else if (g.getObj2Move()) {
+				g.rotateObjectZ(2, 0.3f);
+			}
+			break;
+		case 0x47:
+			// g // rotate about z axis cw
+			if (g.getCameraMove()) {
+				g.rotateCameraZ(-0.3f);
+			}
+			else if (g.getObj1Move()) {
+				g.rotateObjectZ(1, -0.3f);
+			}
+			else if (g.getObj2Move()) {
+				g.rotateObjectZ(2, -0.3f);
+			}
 			break;
 		}
 		return 0;

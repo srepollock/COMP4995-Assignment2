@@ -49,9 +49,13 @@ public:
 	HRESULT ValidateDevice();
 	HRESULT RestoreGraphics();
 	void moveCamera(float, float, float);
-	void rotateCamera(float);
+	void rotateCameraX(float);
+	void rotateCameraY(float);
+	void rotateCameraZ(float);
 	void moveObject(int, float, float, float);
-	void rotateObject(int, float);
+	void rotateObjectX(int, float);
+	void rotateObjectY(int, float);
+	void rotateObjectZ(int, float);
 	bool getCameraMove();
 	bool getObj1Move();
 	bool getObj2Move();
