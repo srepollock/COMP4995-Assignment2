@@ -1,18 +1,27 @@
 #include "Includes.h"
 
+/*
+	Constructor
+*/
 Game::Game() {
 	
 }
-
+/*
+	Constructor that takes the handle
+*/
 Game::Game(HWND hWnd) {
 	this->hWndMain = hWnd;
 	
 }
-
+/*
+	Game Destructor
+*/
 Game::~Game() {
 
 }
-
+/*
+	Initializes the background, frame rate, objects, and matricies.
+*/
 int Game::GameInit() {
 	HRESULT r = 0;//return values
 	D3DSURFACE_DESC desc;
@@ -181,7 +190,9 @@ int Game::GameInit() {
 
 	return S_OK;
 }
-
+/*
+	Calls the render continuously
+*/
 int Game::GameLoop() {
 	frameController.FrameCount();
 	this->Render();
@@ -191,7 +202,9 @@ int Game::GameLoop() {
 
 	return S_OK;
 }
-
+/*
+	Releases the Surfaces and D3D device.
+*/
 int Game::GameShutdown() {
 
 	frameController.UnloadAlphabet();
@@ -209,7 +222,9 @@ int Game::GameShutdown() {
 
 	return S_OK;
 }
-
+/*
+	Loads in the bitmap to the background suface and creates the offscreen surface.
+*/
 int Game::LoadBitmapToSurface(TCHAR* PathName, LPDIRECT3DSURFACE9* ppSurface, LPDIRECT3DDEVICE9 pDevice) {
 	HRESULT r;
 	HBITMAP hBitmap;
@@ -240,7 +255,11 @@ int Game::LoadBitmapToSurface(TCHAR* PathName, LPDIRECT3DSURFACE9* ppSurface, LP
 
 	return S_OK;
 }
-
+/*
+	Init Direct3DDevice
+	Initializes the DirectX 3D Device
+	Setups the back buffers and such
+*/
 int Game::InitDirect3DDevice(HWND hWndTarget, int Width, int Height, BOOL bWindowed, D3DFORMAT FullScreenFormat, LPDIRECT3D9 pD3D, LPDIRECT3DDEVICE9* ppDevice) {
 	D3DPRESENT_PARAMETERS d3dpp;//rendering info
 	D3DDISPLAYMODE d3ddm;//current display mode info
@@ -283,7 +302,9 @@ int Game::InitDirect3DDevice(HWND hWndTarget, int Width, int Height, BOOL bWindo
 	this->SavedPresParams = d3dpp;
 	return S_OK;
 }
-
+/*
+	Loads pDevice and checks the states of the pDevice, backbuffer, and laods the objects into the correct position.
+*/
 int Game::Render() {
 	HRESULT r;
 	this->pBackSurface = 0;
@@ -349,7 +370,9 @@ int Game::Render() {
 	this->pDevice->Present(NULL, NULL, NULL, NULL);//swap over buffer to primary surface
 	return S_OK;
 }
-
+/*
+	Checks if the pDevice and backbuffer is valid.
+*/
 HRESULT Game::ValidateDevice() {
 	HRESULT r = 0;
 	//Test current state of device
@@ -383,11 +406,15 @@ HRESULT Game::ValidateDevice() {
 	}
 	return S_OK;
 }
-
+/*
+	Returns S_OK
+*/
 HRESULT Game::RestoreGraphics() {
 	return S_OK;
 }
-
+/*
+	Sets up the matrix for the camera.
+*/
 void Game::SetupMatrices()
 {
 	// For our world matrix, we will just leave it as the identity
@@ -417,34 +444,44 @@ void Game::SetupMatrices()
 	D3DXMatrixPerspectiveFovLH(&matProj, D3DX_PI / 4, screenaspect, 1.0f, 500.0f);
 	pDevice->SetTransform(D3DTS_PROJECTION, &matProj);
 }
-
+/*
+	Move the camera based on x, y, z
+*/
 void Game::moveCamera(float x, float y, float z) {
 	D3DXMATRIX newM;
 	D3DXMatrixTranslation(&newM, x, y, z);
 	D3DXMatrixMultiply(&matView, &matView, &newM);
 }
-
+/*
+	Rotate the camera about x.
+*/
 void Game::rotateCameraX(float r) {
 	// rotate around y
 	D3DXMATRIX newM;
 	D3DXMatrixRotationX(&newM, r);
 	D3DXMatrixMultiply(&matView, &matView, &newM);
 }
-
+/*
+	Rotate the camera about y.
+*/
 void Game::rotateCameraY(float r) {
 	// rotate around y
 	D3DXMATRIX newM;
 	D3DXMatrixRotationY(&newM, r);
 	D3DXMatrixMultiply(&matView, &matView, &newM);
 }
-
+/*
+	Rotate the camera about z.
+*/
 void Game::rotateCameraZ(float r) {
 	// rotate around y
 	D3DXMATRIX newM;
 	D3DXMatrixRotationZ(&newM, r);
 	D3DXMatrixMultiply(&matView, &matView, &newM);
 }
-
+/*
+	Move the object based on the object number and x, y, z.
+*/
 void Game::moveObject(int objNum, float x, float y, float z) {
 	D3DXMATRIX newM;
 	if (objNum == 1) {
@@ -456,7 +493,9 @@ void Game::moveObject(int objNum, float x, float y, float z) {
 		D3DXMatrixMultiply(&matObj2, &matObj2, &newM);
 	}
 }
-
+/*
+	Rotate the object about x.
+*/
 void Game::rotateObjectX(int objNum, float r) {
 	// rotate around y
 	D3DXMATRIX newM, matRot, backM;
@@ -489,7 +528,9 @@ void Game::rotateObjectX(int objNum, float r) {
 		D3DXMatrixMultiply(&matObj2, &matObj2, &newM);
 	}
 }
-
+/*
+	Rotate the camera about y.
+*/
 void Game::rotateObjectY(int objNum, float r) {
 	// rotate around y
 	D3DXMATRIX newM, matRot, backM;
@@ -522,7 +563,9 @@ void Game::rotateObjectY(int objNum, float r) {
 		D3DXMatrixMultiply(&matObj2, &matObj2, &newM);
 	}
 }
-
+/*
+	Rotate the camera about z.
+*/
 void Game::rotateObjectZ(int objNum, float r) {
 	// rotate around y
 	D3DXMATRIX newM, matRot, backM;
@@ -555,37 +598,51 @@ void Game::rotateObjectZ(int objNum, float r) {
 		D3DXMatrixMultiply(&matObj2, &matObj2, &newM);
 	}
 }
-
+/*
+	Gets if the camera is selected.
+*/
 bool Game::getCameraMove() {
 	return CameraMove;
 }
-
+/*
+	Gets if object 1 is selected.
+*/
 bool Game::getObj1Move() {
 	return Obj1Move;
 }
-
+/*
+	Gets if object 2 is selected.
+*/
 bool Game::getObj2Move() {
 	return Obj2Move;
 }
-
+/*
+	Either select's or deselect's the camera.
+*/
 void Game::setCameraMove(bool b) {
 	CameraMove = b;
 	Obj1Move = false;
 	Obj2Move = false;
 }
-
+/*
+	Either select's or deselect's the first object.
+*/
 void Game::setObj1Move(bool b) {
 	Obj1Move = b;
 	CameraMove = false;
 	Obj2Move = false;
 }
-
+/*
+	Either select's or deselect's the second object.
+*/
 void Game::setObj2Move(bool b) {
 	Obj2Move = b;
 	CameraMove = false;
 	Obj1Move = false;
 }
-
+/*
+	Sets the lighting to directional.
+*/
 void Game::SetLightingDirectional() {
 	ZeroMemory(&material, sizeof(D3DMATERIAL9));
 	material.Diffuse.r = 1.0f;
@@ -610,11 +667,15 @@ void Game::SetLightingDirectional() {
 	pDevice->LightEnable(0, TRUE);
 	pDevice->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(10, 10, 10));
 }
-
+/*
+	Sets the lighting to ambient.
+*/
 void Game::SetLightingAmbient() {
 	pDevice->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(255, 255, 255));
 }
-
+/*
+	Sets the lighting to spot.
+*/
 void Game::SetLightingSpot() {
 	ZeroMemory(&material, sizeof(D3DMATERIAL9));
 	material.Diffuse.r = 1.0f;
@@ -645,7 +706,9 @@ void Game::SetLightingSpot() {
 	pDevice->LightEnable(0, TRUE);
 	pDevice->SetRenderState(D3DRS_AMBIENT, D3DCOLOR_XRGB(10, 10, 10));
 }
-
+/*
+	Sets the lighting to point.
+*/
 void Game::SetLightingPoint() {
 	ZeroMemory(&light, sizeof(light));
 	light.Type = D3DLIGHT_POINT;
